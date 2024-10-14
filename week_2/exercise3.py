@@ -46,7 +46,7 @@ plt.xlabel('Actual Values')
 plt.ylabel('Predicted Values')
 
 try:
-    plt.savefig('/Users/huangyuting/Machine Learning for Robotics/week_2/Lab_2/2d_sinunoidal_signal_random_forest.png')
+    plt.savefig('/Users/huangyuting/Machine Learning for Robotics/week_2/Lab_2/actual_vs_predicted_random_forest.png')
     print(f"Figure saved successfully")
 except Exception as e:
     print(f"Error saving figure: {e}")
@@ -73,7 +73,7 @@ plt.colorbar()
 
 plt.tight_layout()
 try:
-    plt.savefig('/Users/huangyuting/Machine Learning for Robotics/week_2/Lab_2/actual_vs_predicted_random_forest.png')
+    plt.savefig('/Users/huangyuting/Machine Learning for Robotics/week_2/Lab_2/2d_sinunoidal_signal_random_forest.png')
     print(f"Figure saved successfully")
 except Exception as e:
     print(f"Error saving figure: {e}")
