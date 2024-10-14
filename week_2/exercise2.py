@@ -45,6 +45,13 @@ plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], '--r', line
 plt.title('Actual vs Predicted (Bagging Regressor)')
 plt.xlabel('Actual Values')
 plt.ylabel('Predicted Values')
+
+try:
+    plt.savefig('/Users/huangyuting/Machine Learning for Robotics/week_2/Lab_2/actual_vs_predicted_bagging_regressor.png')
+    print(f"Figure saved successfully")
+except Exception as e:
+    print(f"Error saving figure: {e}")
+
 plt.show()
 
 # Visualizing the 2D signal and model predictions
@@ -66,4 +73,12 @@ plt.title('Predicted by Bagging Regressor')
 plt.colorbar()
 
 plt.tight_layout()
+
+try:
+    plt.savefig('/Users/huangyuting/Machine Learning for Robotics/week_2/Lab_2/2d_sinunoidal_signal_bagging_regressor.png')
+    print(f"Figure saved successfully")
+except Exception as e:
+    print(f"Error saving figure: {e}")
+
 plt.show()
+
