@@ -82,3 +82,27 @@ except Exception as e:
 
 plt.show()
 
+# Initialize an empty list to store results
+results = []
+
+# Perform analysis of the effect of max_depth and splitter on test error
+for depth in [3, 5, 7, 10]:  # Different values of max_depth
+    for split in ['best', 'random']:  # Different values of splitter
+        # Initialize and train the decision tree regressor
+        tree_regressor = DecisionTreeRegressor(max_depth=depth, splitter=split, random_state=42)
+        tree_regressor.fit(X_train, y_train)
+        
+        # Predict on the test set
+        y_pred = tree_regressor.predict(X_test)
+        
+        # Calculate the mean squared error and R^2 score
+        mse = mean_squared_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+        
+        # Append the results to the list
+        results.append((depth, split, mse, r2))
+
+# Loop through the decision tree results
+for result in results:
+    depth, split, mse, r2 = result
+    print(f"Decision Tree (max_depth={depth}, splitter={split}) - MSE: {mse:.4f}, R^2: {r2:.4f}")
