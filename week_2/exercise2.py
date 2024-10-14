@@ -105,4 +105,4 @@ for depth in [3, 5, 7, 10]:  # Different values of max_depth
 # Loop through the decision tree results
 for result in results:
     depth, split, mse, r2 = result
-    print(f"Decision Tree (max_depth={depth}, splitter={split}) - MSE: {mse:.4f}, R^2: {r2:.4f}")
+    print(f"Bagging Regressor (max_depth={depth}, splitter={split}) - MSE: {mse:.4f}, R^2: {r2:.4f}")
