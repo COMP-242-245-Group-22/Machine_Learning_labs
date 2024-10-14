@@ -1,8 +1,8 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.metrics import mean_squared_error, r2_score
 
 # Generate synthetic data
 x1 = np.arange(0, 10, 0.1)
@@ -17,5 +17,19 @@ y = y.flatten()
 X = np.vstack((x1, x2)).T
 
 # Split data
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42
+)
 
+for splitter in ["best", "random"]:
+    for max_depth in range(1, 6):
+        tree = DecisionTreeRegressor(max_depth=max_depth, splitter=splitter)
+        tree.fit(X_train, y_train)
+        y_pred = tree.predict(X_test)
+        mse = mean_squared_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        print(f"Splitter: {splitter}, Max depth: {max_depth}")
+        print(f"MSE: {mse}")
+        print(f"R2: {r2}")
+        print("-" * 50)
