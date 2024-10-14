@@ -82,8 +82,6 @@ except Exception as e:
 
 plt.show()
 
-    # return y_pred
-
 """
 Object 2: Check on the scikit manual what are the hyperparameter that you can tune for the decision tree regressor.
 """
