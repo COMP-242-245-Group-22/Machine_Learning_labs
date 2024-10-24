@@ -1,36 +1,51 @@
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
-import matplotlib.pyplot as plt
+from torchvision import datasets, transforms
+
+# Check if GPU is available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def one_hot_encode(targets, num_classes=10):
+    return torch.eye(num_classes, device=device)[targets]
+
 
 # 1. Data Preparation
 # Define transformations for the training and test sets
-transform = transforms.Compose([
-    transforms.ToTensor(),  # Convert PIL image to PyTorch Tensor
-    transforms.Normalize((0.1307,), (0.3081,))  # Normalize the dataset
-])
+transform = transforms.Compose(
+    [
+        transforms.ToTensor(),  # Convert PIL image to PyTorch Tensor
+        transforms.Normalize((0.1307,), (0.3081,)),  # Normalize the dataset
+    ]
+)
 
 # Download and load the training and test datasets
-train_dataset = datasets.MNIST(root='./data', train=True,
-                               transform=transform, download=True)
-test_dataset = datasets.MNIST(root='./data', train=False,
-                              transform=transform, download=True)
+train_dataset = datasets.MNIST(
+    root="./data", train=True, transform=transform, download=True
+)
+test_dataset = datasets.MNIST(
+    root="./data", train=False, transform=transform, download=True
+)
 
 # Create data loaders
 train_loader = DataLoader(dataset=train_dataset, batch_size=32, shuffle=True)
 test_loader = DataLoader(dataset=test_dataset, batch_size=32, shuffle=False)
+
 
 # 2. Model Construction
 class MLP(nn.Module):
     def __init__(self):
         super(MLP, self).__init__()
         self.flatten = nn.Flatten()
-        self.hidden = nn.Linear(28*28, 128)  # Input layer to hidden layer
+        self.hidden = nn.Linear(28 * 28, 128)  # Input layer to hidden layer
         self.relu = nn.ReLU()
-        self.output = nn.Linear(128, 10)     # Hidden layer to output layer
-        self.softmax = nn.LogSoftmax(dim=1)  # Use LogSoftmax for numerical stability
+        self.output = nn.Linear(128, 10)  # Hidden layer to output layer
+        self.softmax = nn.LogSoftmax(
+            dim=1
+        )  # Use LogSoftmax for numerical stability
 
     def forward(self, x):
         x = self.flatten(x)
@@ -40,11 +55,17 @@ class MLP(nn.Module):
         x = self.softmax(x)
         return x
 
-model = MLP()
+
+model = MLP().to(device)
 
 # 3. Model Compilation
-criterion = nn.NLLLoss()  # Negative Log Likelihood Loss (used with LogSoftmax)
+criterion = nn.NLLLoss().to(
+    device
+)  # Negative Log Likelihood Loss (used with LogSoftmax)
+# criterion = nn.MSELoss().to(device)  # Mean Squared Error Loss
 optimizer = optim.SGD(model.parameters(), lr=0.01)
+# optimizer = optim.Adam(model.parameters(), lr=0.001)
+# optimizer = optim.RMSprop(model.parameters(), lr=0.001)
 
 # 4. Model Training
 epochs = 20
@@ -57,9 +78,16 @@ for epoch in range(epochs):
     correct = 0
 
     for data, target in train_loader:
+        data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
-        loss = criterion(output, target)  # target is not one-hot encoded in PyTorch
+        # target_one_hot = one_hot_encode(target)  # Convert target to one-hot
+        # loss = criterion(
+        # torch.exp(output), target_one_hot
+        # )  # Use exp(output) to invert LogSoftmax
+        loss = criterion(
+            output, target
+        )  # target is not one-hot encoded in PyTorch
         loss.backward()
         optimizer.step()
 
@@ -68,9 +96,11 @@ for epoch in range(epochs):
         correct += pred.eq(target.view_as(pred)).sum().item()
 
     train_losses.append(epoch_loss / len(train_loader))
-    train_accuracy = 100. * correct / len(train_loader.dataset)
+    train_accuracy = 100.0 * correct / len(train_loader.dataset)
 
-    print(f'Epoch {epoch+1}/{epochs}, Loss: {train_losses[-1]:.4f}, Accuracy: {train_accuracy:.2f}%')
+    print(
+        f"Epoch {epoch+1}/{epochs}, Loss: {train_losses[-1]:.4f}, Accuracy: {train_accuracy:.2f}%"
+    )
 
 # 5. Model Evaluation
 model.eval()
@@ -79,17 +109,14 @@ correct = 0
 
 with torch.no_grad():
     for data, target in test_loader:
+        data, target = data.to(device), target.to(device)
         output = model(data)
         test_loss += criterion(output, target).item()
+        # test_loss += criterion(torch.exp(output), one_hot_encode(target)).item()
         pred = output.argmax(dim=1, keepdim=True)
         correct += pred.eq(target.view_as(pred)).sum().item()
 
 test_loss /= len(test_loader)
-test_accuracy = 100. * correct / len(test_loader.dataset)
+test_accuracy = 100.0 * correct / len(test_loader.dataset)
 
-print(f'Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.2f}%')
-
-
-
-
-
+print(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.2f}%")
