@@ -165,11 +165,15 @@ def main():
     )
     plt.xlabel("Index")
     plt.ylabel("Value")
-    plt.savefig(
-        f"./Machine_Learning_labs/week_1_2/figures/confidence_intervals_{noise_level}.png",
-        dpi=300,
-    )
-    # plt.show()
+    [
+        plt.savefig(
+            f"./Machine_Learning_labs/week_1_2/{folder}/confidence_intervals_{noise_level}{ext}",
+            dpi=300,
+        )
+        for folder in ["figures", "67080d899e6574a2ca0083fa/figures"]
+        for ext in [".png", ".pdf"]
+    ]
+    plt.close()
 
     # prediction intervals
     pred_se = []
@@ -187,54 +191,65 @@ def main():
     )
 
     # comparing predicted and measured torques for each joint
-    fig, axs = plt.subplots(num_joints, figsize=(10, 10))
     for i in range(num_joints):
-        axs[i].plot(timestamps, tau_mes_all[i::num_joints], label="measured")
-        axs[i].plot(timestamps, tau_pred[i::num_joints], label="predicted")
-        axs[i].fill_between(
+        plt.figure(figsize=(20, 5))
+        plt.plot(timestamps, tau_mes_all[i::num_joints])
+        plt.plot(timestamps, tau_pred[i::num_joints])
+        plt.fill_between(
             timestamps,
             pred_intervals[0][:, i],
             pred_intervals[1][:, i],
             color="gray",
             alpha=0.5,
-            label="95% prediction interval",
         )
-        axs[i].set_title(f"Joint {i+1}")
-        axs[i].set_xlabel("Time (ms)")
-        axs[i].set_ylabel("Torque (Nm)")
-        axs[i].legend()
-    for ax in axs.flat:
-        ax.set_xlim(left=0)
-    fig.suptitle(
-        f"Measured and predicted torques since $t_{{{cutoff}}}$ (noise = {noise_level})"
-    )
-    plt.tight_layout()
-    plt.savefig(
-        f"./Machine_Learning_labs/week_1_2/figures/torque_comparison_{noise_level}.png",
-        dpi=300,
-    )
-    # plt.show()
+        plt.title(f"Joint {i}")
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Torque (Nm)")
+        if i == num_joints // 2:
+            plt.legend(
+                ["Measured", "Predicted", "95% Prediction Interval"],
+                loc="right",
+                framealpha=0.5,
+            )
+        plt.xlim(left=0)
+        plt.suptitle(
+            f"Measured and predicted torques since $t_{{{cutoff}}}$ (noise = {noise_level})"
+        )
+        plt.tight_layout()
+        [
+            plt.savefig(
+                f"./Machine_Learning_labs/week_1_2/{folder}/joint_{i}_torque_comparison_{noise_level}{ext}",
+                dpi=300,
+            )
+            for folder in ["figures", "67080d899e6574a2ca0083fa/figures"]
+            for ext in [".png", ".pdf"]
+        ]
+        plt.close()
 
     # plot the torque prediction error for each joint (optional)
     pred_err = tau_mes_all - tau_pred
     pred_err = np.reshape(pred_err, (n // num_joints, num_joints))
-    fig, axs = plt.subplots(num_joints, figsize=(10, 10))
+
     for i in range(num_joints):
-        axs[i].plot(timestamps, pred_err[:, i])
-        axs[i].set_title(f"Joint {i+1}")
-        axs[i].set_xlabel("Time (ms)")
-        axs[i].set_ylabel("Torque error (Nm)")
-    for ax in axs.flat:
-        ax.set_xlim(left=0)
-    fig.suptitle(
-        f"Torque prediction error since $t_{{{cutoff}}}$ (noise = {noise_level})"
-    )
-    plt.tight_layout()
-    plt.savefig(
-        f"./Machine_Learning_labs/week_1_2/figures/torque_prediction_error_{noise_level}.png",
-        dpi=300,
-    )
-    # plt.show()
+        plt.figure(figsize=(20, 5))
+        plt.plot(timestamps, pred_err[:, i])
+        plt.title(f"Joint {i}")
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Torque error (Nm)")
+        plt.xlim(left=0)
+        plt.suptitle(
+            f"Torque prediction error since $t_{{{cutoff}}}$ (noise = {noise_level})"
+        )
+        plt.tight_layout()
+        [
+            plt.savefig(
+                f"./Machine_Learning_labs/week_1_2/{folder}/joint_{i}_torque_prediction_error_{noise_level}{ext}",
+                dpi=300,
+            )
+            for folder in ["figures", "67080d899e6574a2ca0083fa/figures"]
+            for ext in [".png", ".pdf"]
+        ]
+        plt.close()
 
 
 if __name__ == "__main__":
