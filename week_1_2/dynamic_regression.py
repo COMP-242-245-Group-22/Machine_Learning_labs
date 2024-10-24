@@ -160,11 +160,11 @@ def main():
     var = np.diag(mse * np.linalg.pinv(regressor_all.T @ regressor_all))  # 70x1
     se = np.sqrt(np.abs(var))  # 70x1
     plt.errorbar(np.arange(p), a, yerr=se * 1.96, fmt="o", capsize=5)
-    plt.title(
-        f"Dynamic parameters with 95% confidence intervals (noise = {noise_level})"
-    )
     plt.xlabel("Index")
     plt.ylabel("Value")
+    plt.title(
+        f"Dynamic Parameters with 95% Confidence Intervals (noise = {noise_level})"
+    )
     [
         plt.savefig(
             f"./Machine_Learning_labs/week_1_2/{folder}/confidence_intervals_{noise_level}{ext}",
@@ -192,7 +192,7 @@ def main():
 
     # comparing predicted and measured torques for each joint
     for i in range(num_joints):
-        plt.figure(figsize=(20, 5))
+        plt.figure(figsize=(10, 2.5))
         plt.plot(timestamps, tau_mes_all[i::num_joints])
         plt.plot(timestamps, tau_pred[i::num_joints])
         plt.fill_between(
@@ -202,17 +202,16 @@ def main():
             color="gray",
             alpha=0.5,
         )
-        plt.title(f"Joint {i}")
-        plt.xlabel("Time (ms)")
-        plt.ylabel("Torque (Nm)")
+        plt.xlim(left=0)
         plt.legend(
-            ["Measured", "Predicted", "95% Prediction Interval"],
+            ["Measured", "Predicted", "95% Pred Int"],
             loc="right",
             framealpha=0.5,
         )
-        plt.xlim(left=0)
-        plt.suptitle(
-            f"Measured and predicted torques since $t_{{{cutoff}}}$ (noise = {noise_level})"
+        plt.xlabel("Time (ms)")
+        plt.ylabel("Torque (Nm)")
+        plt.title(
+            rf"Joint {i} Measured and Predicted Torques ($t \geq t_{{{cutoff}}}$, noise = {noise_level})"
         )
         plt.tight_layout()
         [
@@ -230,14 +229,13 @@ def main():
     pred_err = np.reshape(pred_err, (n // num_joints, num_joints))
 
     for i in range(num_joints):
-        plt.figure(figsize=(20, 5))
+        plt.figure(figsize=(10, 2.5))
         plt.plot(timestamps, pred_err[:, i])
-        plt.title(f"Joint {i}")
+        plt.xlim(left=0)
         plt.xlabel("Time (ms)")
         plt.ylabel("Torque error (Nm)")
-        plt.xlim(left=0)
-        plt.suptitle(
-            f"Torque prediction error since $t_{{{cutoff}}}$ (noise = {noise_level})"
+        plt.title(
+            rf"Joint {i} Torque Prediction Error ($t \geq t_{{{cutoff}}}$, noise = {noise_level})"
         )
         plt.tight_layout()
         [
