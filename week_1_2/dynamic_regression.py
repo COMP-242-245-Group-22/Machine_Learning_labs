@@ -205,12 +205,11 @@ def main():
         plt.title(f"Joint {i}")
         plt.xlabel("Time (ms)")
         plt.ylabel("Torque (Nm)")
-        if i == num_joints // 2:
-            plt.legend(
-                ["Measured", "Predicted", "95% Prediction Interval"],
-                loc="right",
-                framealpha=0.5,
-            )
+        plt.legend(
+            ["Measured", "Predicted", "95% Prediction Interval"],
+            loc="right",
+            framealpha=0.5,
+        )
         plt.xlim(left=0)
         plt.suptitle(
             f"Measured and predicted torques since $t_{{{cutoff}}}$ (noise = {noise_level})"
