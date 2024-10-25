@@ -1,3 +1,5 @@
+import time
+
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
@@ -6,7 +8,13 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 # Check if GPU is available
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+# elif torch.backends.mps.is_available():
+#     device = torch.device("mps")
+else:
+    device = torch.device("cpu")
+print(f"Using device: {device}")
 
 
 def one_hot_encode(targets, num_classes=10):
@@ -76,7 +84,7 @@ for epoch in range(epochs):
     model.train()
     epoch_loss = 0
     correct = 0
-
+    epoch_start = time.time()
     for data, target in train_loader:
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
@@ -95,11 +103,12 @@ for epoch in range(epochs):
         pred = output.argmax(dim=1, keepdim=True)
         correct += pred.eq(target.view_as(pred)).sum().item()
 
+    epoch_time = time.time() - epoch_start
     train_losses.append(epoch_loss / len(train_loader))
     train_accuracy = 100.0 * correct / len(train_loader.dataset)
 
     print(
-        f"Epoch {epoch+1}/{epochs}, Loss: {train_losses[-1]:.4f}, Accuracy: {train_accuracy:.2f}%"
+        f"Epoch {epoch+1}/{epochs}, Loss: {train_losses[-1]:.4f}, Accuracy: {train_accuracy:.2f}%, Time: {epoch_time:.2f}s"
     )
 
 # 5. Model Evaluation
