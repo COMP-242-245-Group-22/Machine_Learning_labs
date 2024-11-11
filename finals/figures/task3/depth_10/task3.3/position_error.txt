@@ -1,0 +1,7 @@
+Goal position: [0.6749080237694725, 0.09014286128198323, 0.12]
+Final computed cartesian position: [0.67158889 0.0885794  0.09021727]
+Position error between computed position and goal: 0.030007869915599585
+Final computed cartesian position: [0.67586763 0.09548088 0.12970192]
+Position error between computed position and goal: 0.011114970726098775
+Final computed cartesian position: [0.67498444 0.09479418 0.13111121]
+Position error between computed position and goal: 0.012045726741439134
