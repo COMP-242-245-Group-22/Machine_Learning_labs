@@ -8,7 +8,7 @@ from skopt import gp_minimize
 from skopt.space import Real
 from skopt.learning import GaussianProcessRegressor
 from skopt.learning.gaussian_process.kernels import RBF
-from gp_functions import fit_gp_model_1d, plot_gp_results_1d
+from gp_functions import fit_gp_model_1d, plot_gp_results_1d,fit_gp_model,plot_gp_results
 
 
 # Configuration for the simulation
@@ -117,13 +117,12 @@ def objective(params):
     episode_duration = 10
     
     # TODO Call the simulation with given kp and kd values
-    tracking_error = simulate_with_given_pid_values(sim, kp, kd)
+    tracking_error = simulate_with_given_pid_values(sim, kp, kd, episode_duration)
 
     # TODO Collect data for the first kp and kd  
     kp0_values.append(kp[0])
     kd0_values.append(kd[0])
     tracking_errors.append(tracking_error)
-    
     return tracking_error
 
 
@@ -147,23 +146,56 @@ def main():
     n_restarts_optimizer=10  # Optional for better hyperparameter optimization
     )
 
-    acq_func = 'EI'  # TODO change this LCB': Lower Confidence Bound 'EI': Expected Improvement 'PI': Probability of Improvement
-    n_calls = 50
-    krn = 'default'
+    # Test for each Aquisition Function
+    acq_funcs = ['EI', 'PI', 'LCB']
+    results = {}
+    for acq_func in acq_funcs:
+        n_calls=50
+        print(f"\nRunning optimization with acquisition function: {acq_func}")
+        
+        # Perform Bayesian optimization with the chosen acquisition function
+        result = gp_minimize(
+            objective, 
+            space, 
+            n_calls=n_calls,  # Adjust the number of iterations if necessary
+            base_estimator=gp,  # Use Custom Gaussian Process Regressor
+            acq_func=acq_func,  # Choose acquisition function
+            random_state=42
+        )
+        results[acq_func] = {
+        'tracking_error': result.fun,
+        'parameters': result.x,
+        'iterations': result.func_vals  # Keeps track of objective values over iterations
+    }
+    # Plot convergence behavior
+    plt.figure(figsize=(10, 6))
+    for acq_func, data in results.items():
+        plt.plot(data['iterations'], label=f'{acq_func} (final error: {data["tracking_error"]:.4f})')
 
-    # Perform Bayesian optimization
-    result = gp_minimize(
-    objective,
-    space,
-    n_calls=n_calls,
-    base_estimator=gp,  # Use the custom Gaussian Process Regressor
-    acq_func=acq_func,
-    random_state=42)
-    
-    # Extract the optimal values
-    best_kp = result.x[:7]  # Optimal kp vector
-    best_kd = result.x[7:]  # Optimal kd vector
+    plt.xlabel('Iteration')
+    plt.ylabel('Tracking Error')
+    plt.title('Convergence of Acquisition Functions')
+    plt.legend()
+    # file_path = f'/Users/huangyuting/Machine Learning for Robotics/week_3/Lab_3/figures/objective2/convergence_of_acquisition_function.pdf'
+    # try:
+    #     plt.savefig(file_path)
+    #     print(f'Convergence of Acquisition Functions')
+    # except Exception as e:
+    #     print(f'Error saving figure for Convergence of Acquisition Functions: {e}')
+    plt.show()
 
+    # Print final results for each acquisition function
+    for acq_func, data in results.items():
+        print(f"\nAcquisition Function: {acq_func}")
+        print(f"Final Tracking Error: {data['tracking_error']}")
+        print(f"Optimal Parameters (kp, kd): {data['parameters']}")
+    # Analyzing results
+    for acq_func, data in results.items():
+        print(f"\nAcquisition Function: {acq_func}")
+        print(f"Final Tracking Error: {data['tracking_error']}")
+        print(f"Optimal Parameters (kp, kd): {data['parameters']}")
+        print(f"Convergence Behavior: {data['iterations']}")
+        
     # Prepare data
     kp0_values_array = np.array(kp0_values).reshape(-1, 1)
     kd0_values_array = np.array(kd0_values).reshape(-1, 1)
@@ -173,18 +205,46 @@ def main():
     gp_kp0 = fit_gp_model_1d(kp0_values_array, tracking_errors_array)
     gp_kd0 = fit_gp_model_1d(kd0_values_array, tracking_errors_array)
 
-    filename = f'plots/acq_func_{acq_func}_n_calls_{n_calls}_kernel_{krn}'
-
     # Plot the results
-    plot_gp_results_1d(kp0_values_array, kd0_values_array, tracking_errors_array, gp_kp0, gp_kd0,
-        filename=filename,
-    )
+    plot_gp_results_1d(gp_kp0, gp_kd0)
 
-    print(f"Optimal Kp: {best_kp}, Optimal Kd: {best_kd}")
+    # Define kernels with small and large length scales
+    kernels = {
+        "small": RBF(length_scale=1e-2, length_scale_bounds=(1e-3, 1e-1)),
+        "large": RBF(length_scale=1e2, length_scale_bounds=(1e1, 1e4))
+    }
+    # Fit GP models with different length scales
+    gp_models = fit_gp_model(kp0_values, kd0_values, tracking_errors, kernels)
 
-
-    with open(f'{filename}.txt', "w") as file:
-        file.write(f"Optimal Kp: {best_kp}, Optimal Kd: {best_kd}")
+    # Plot the GP results for both models (small and large kernels)
+    for scale, (gp_kp0, gp_kd0) in gp_models.items():
+        print(f"\nPlotting results for {scale} length scale kernel:")
+        try:
+            if scale == "small":
+                plot_gp_results(kp0_values, kd0_values, tracking_errors, gp_kp0, gp_kd0)
+                # plt.savefig(f'/Users/huangyuting/Machine Learning for Robotics/week_3/Lab_3/figures/objective3/re')
+                print(f'gp small results saved successfully')
+            elif scale == "large":
+                plot_gp_results(kp0_values, kd0_values, tracking_errors, gp_kp0, gp_kd0)
+                # plt.savefig(f'/Users/huangyuting/Machine Learning for Robotics/week_3/Lab_3/figures/objective3/plot_gp_large_results.pdf')
+                print(f'gp large results saved successfully')
+        except Exception as e:
+            print(f'Error saving figure for plot_gp_{scale}_results: {e}')
+    
+    # Apply the best aquisition function with Ziegler Nichols
+    best_acquisition_function = 'EI'
+    result = gp_minimize(
+    objective,      
+    space,         
+    n_calls=50,       
+    acq_func=best_acquisition_function,  
+    random_state=42
+)
+    # Extract the optimal values
+    best_kp = result.x[:7]  # Optimal kp vector
+    best_kd = result.x[7:]  # Optimal kd vector
+    print(f"Best kp: {best_kp}, Best kd: {best_kd}")
+    print(f"Minimum tracking error achieved: {result.fun}")
 
 if __name__ == "__main__":
     main()
